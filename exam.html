@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Làm Bài Ôn Tập</title>
+
+<style>
+body { font-family: Arial; background:#f4f8fb; padding:30px; }
+.question { background:white; padding:15px; margin-bottom:15px; border-radius:8px; }
+button { padding:10px 20px; background:#2d89ef; color:white; border:none; border-radius:5px; }
+#timer { font-weight:bold; color:red; }
+</style>
+</head>
+
+<body>
+
+<h2>Làm Bài Ôn Tập</h2>
+<div id="timer"></div>
+<div id="exam"></div>
+<button onclick="submitExam()">Nộp bài</button>
+
+<script>
+
+let rawText = localStorage.getItem("examContent");
+let shuffleQ = localStorage.getItem("shuffleQ") === "true";
+let shuffleA = localStorage.getItem("shuffleA") === "true";
+let limitTime = localStorage.getItem("limitTime") === "true";
+let minutes = parseInt(localStorage.getItem("minutes"));
+
+if(!rawText){
+    document.body.innerHTML = "<h3>Chưa có đề thi!</h3>";
+}
+
+// ---- TÁCH CÂU HỎI ----
+function parseQuestions(text){
+    let questions = text.split(/Câu\s+\d+:/).slice(1);
+    return questions.map(q => {
+        let lines = q.trim().split("\n").map(l => l.trim()).filter(l => l);
+        let content = lines[0];
+        let answers = lines.filter(l => /^[A-D]\./.test(l));
+        let correctLine = lines.find(l => l.startsWith("Đáp án"));
+        let correct = correctLine ? correctLine.split(":")[1].trim() : "";
+
+        return {content, answers, correct};
+    });
+}
+
+let questions = parseQuestions(rawText);
+
+// ---- TRỘN CÂU ----
+if(shuffleQ){
+    questions.sort(() => Math.random() - 0.5);
+}
+
+let examDiv = document.getElementById("exam");
+
+// ---- HIỂN THỊ ----
+questions.forEach((q, index) => {
+
+    let div = document.createElement("div");
+    div.className = "question";
+
+    let html = "<b>Câu " + (index+1) + ":</b> " + q.content + "<br>";
+
+    let answers = [...q.answers];
+
+    if(shuffleA){
+        answers.sort(() => Math.random() - 0.5);
+    }
+
+    answers.forEach(a => {
+        html += `<label><input type="radio" name="q${index}" value="${a[0]}"> ${a}</label><br>`;
+    });
+
+    div.innerHTML = html;
+    examDiv.appendChild(div);
+});
+
+// ---- NỘP BÀI ----
+function submitExam(){
+    let score = 0;
+
+    questions.forEach((q, index) => {
+        let selected = document.querySelector(`input[name="q${index}"]:checked`);
+        if(selected && selected.value === q.correct){
+            score++;
+        }
+    });
+
+    alert("Điểm của bạn: " + score + "/" + questions.length);
+}
+
+// ---- ĐẾM GIỜ ----
+if(limitTime && minutes > 0){
+    let totalSeconds = minutes * 60;
+    let timerDiv = document.getElementById("timer");
+
+    let interval = setInterval(() => {
+        let min = Math.floor(totalSeconds / 60);
+        let sec = totalSeconds % 60;
+        timerDiv.innerText = "Thời gian còn lại: " + min + "m " + sec + "s";
+
+        totalSeconds--;
+
+        if(totalSeconds < 0){
+            clearInterval(interval);
+            alert("Hết giờ!");
+            submitExam();
+        }
+    }, 1000);
+}
+
+</script>
+
+</body>
+</html>
