@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tạo Phòng Ôn Tập</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+<style>
+body { font-family: Arial; background:#f4f8fb; text-align:center; padding:40px; }
+.box { background:white; padding:30px; width:500px; margin:auto; border-radius:10px; }
+button { padding:10px 20px; background:#2d89ef; color:white; border:none; border-radius:5px; }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>Tạo Phòng Ôn Tập</h2>
+
+<input type="file" id="fileInput" accept=".docx"><br><br>
+
+<label><input type="checkbox" id="shuffleQ"> Trộn câu</label><br>
+<label><input type="checkbox" id="shuffleA"> Trộn đáp án</label><br>
+<label><input type="checkbox" id="limitTime"> Giới hạn thời gian</label><br><br>
+
+<input type="number" id="minutes" placeholder="Số phút làm bài"><br><br>
+
+<button onclick="createRoom()">Tạo phòng</button>
+
+<p id="status"></p>
+</div>
+
+<script>
+function createRoom(){
+    const file = document.getElementById("fileInput").files[0];
+    if(!file){
+        alert("Chọn file Word trước!");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event){
+        mammoth.extractRawText({arrayBuffer: event.target.result})
+        .then(function(result){
+            localStorage.setItem("examContent", result.value);
+            localStorage.setItem("shuffleQ", document.getElementById("shuffleQ").checked);
+            localStorage.setItem("shuffleA", document.getElementById("shuffleA").checked);
+            localStorage.setItem("limitTime", document.getElementById("limitTime").checked);
+            localStorage.setItem("minutes", document.getElementById("minutes").value);
+
+            document.getElementById("status").innerText = "Đã tạo phòng thành công!";
+        });
+    };
+    reader.readAsArrayBuffer(file);
+}
+</script>
+
+</body>
+</html>
